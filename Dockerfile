@@ -1,5 +1,7 @@
 FROM python:alpine
 
+RUN apk update && apk add libxslt-dev gcc g++
+
 RUN mkdir -p /opt/mta-service-status-api
 COPY requirements.txt /tmp/
 

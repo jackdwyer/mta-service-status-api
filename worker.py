@@ -1,7 +1,7 @@
-from bs4 import BeautifulSoup
 import config
 import datetime
 import logging
+from lxml import html
 import pickle
 import redis
 import requests
@@ -19,33 +19,24 @@ r = redis.StrictRedis(host='redis')
 
 
 def get_mta_data():
-    return requests.get(config.MTA_STATUS_PAGE).text
-
-
-def parse_onclick(text):
-    return text.split(',')[1].replace('"', '').strip(")")
+    return html.fromstring(requests.get(config.MTA_STATUS_PAGE).content)
 
 
 def parse_status_page(data):
     stations = {}
-    stations['data'] = {
-        "123": config.DEFAULT_STATUS,
-        "456": config.DEFAULT_STATUS,
-        "7": config.DEFAULT_STATUS,
-        "ACE": config.DEFAULT_STATUS,
-        "BDFM": config.DEFAULT_STATUS,
-        "G": config.DEFAULT_STATUS,
-        "JZ": config.DEFAULT_STATUS,
-        "L": config.DEFAULT_STATUS,
-        "NQR": config.DEFAULT_STATUS,
-        "S": config.DEFAULT_STATUS,
-        "SIR": config.DEFAULT_STATUS,
-    }
     stations['last_updated'] = datetime.datetime.utcnow()
-    soup = BeautifulSoup(data, 'html.parser')
-    for el in soup.find_all('td', {'onclick': True}):
-        stations['data'][parse_onclick(el.attrs['onclick'])] = el.text
-    stations['data']['SIR'] = soup.find_all('td')[-1].text
+    stations['data'] = {}
+    for el in data.xpath('//tr'):
+        status = el.xpath('./td[@align="center"]/text()')[0]
+        # ['routeIcons_22/1.gif', 'routeIcons_22/2.gif', 'routeIcons_22/3.gif']
+        lines = [l.split("/")[-1].replace(".gif", "").upper()
+                 for l in el.xpath('.//img/@src')]
+        if len(lines) == 0:
+            # must be sir
+            lines = ["SIR"]
+        for l in lines:
+            stations['data'][l] = status
+
     r.set("stations", pickle.dumps(stations))
 
 
