@@ -1,7 +1,7 @@
 build:
 	docker build -t jackdwyer/mta-service-status-api:latest .
 
-publish:
+publish: build
 	docker push jackdwyer/mta-service-status-api:latest
 
 run-dev:
