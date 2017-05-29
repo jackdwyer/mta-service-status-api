@@ -1,0 +1,16 @@
+version: '3'
+services:
+  redis:
+    image: redis
+  worker:
+    build: jackdwyer/mta-service-status-api:latest
+    command: python worker.py
+    depends_on:
+      - redis
+  web:
+    build: jackdwyer/mta-service-status-api:latest
+    command: python app.py
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
