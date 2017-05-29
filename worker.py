@@ -28,7 +28,19 @@ def parse_onclick(text):
 
 def parse_status_page(data):
     stations = {}
-    stations['data'] = {}
+    stations['data'] = {
+        "123": config.DEFAULT_STATUS,
+        "456": config.DEFAULT_STATUS,
+        "7": config.DEFAULT_STATUS,
+        "ACE": config.DEFAULT_STATUS,
+        "BDFM": config.DEFAULT_STATUS,
+        "G": config.DEFAULT_STATUS,
+        "JZ": config.DEFAULT_STATUS,
+        "L": config.DEFAULT_STATUS,
+        "NQR": config.DEFAULT_STATUS,
+        "S": config.DEFAULT_STATUS,
+        "SIR": config.DEFAULT_STATUS,
+    }
     stations['last_updated'] = datetime.datetime.utcnow()
     soup = BeautifulSoup(data, 'html.parser')
     for el in soup.find_all('td', {'onclick': True}):
